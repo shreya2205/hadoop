@@ -20,10 +20,7 @@ package org.apache.hadoop.io.erasurecode;
 import com.google.common.base.Preconditions;
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.io.erasurecode.codec.ErasureCodec;
-import org.apache.hadoop.io.erasurecode.codec.HHXORErasureCodec;
-import org.apache.hadoop.io.erasurecode.codec.RSErasureCodec;
-import org.apache.hadoop.io.erasurecode.codec.XORErasureCodec;
+import org.apache.hadoop.io.erasurecode.codec.*;
 import org.apache.hadoop.io.erasurecode.coder.ErasureDecoder;
 import org.apache.hadoop.io.erasurecode.coder.ErasureEncoder;
 import org.apache.hadoop.io.erasurecode.rawcoder.RawErasureCoderFactory;
@@ -67,6 +64,12 @@ public final class CodecUtil {
       IO_ERASURECODE_CODEC + "hhxor";
   public static final String IO_ERASURECODE_CODEC_HHXOR =
       HHXORErasureCodec.class.getCanonicalName();
+
+  /** Erasure coder clay code codec. */
+  public static final String IO_ERASURECODE_CODEC_CLAYCODE_KEY =
+          IO_ERASURECODE_CODEC + "claycode";
+  public static final String IO_ERASURECODE_CODEC_CLAYCODE =
+          ClayCodeErasureCodec.class.getCanonicalName();
 
   /** Comma separated raw codec name. The first coder is prior to the latter. */
   public static final String IO_ERASURECODE_CODEC_RS_LEGACY_RAWCODERS_KEY =
@@ -253,6 +256,10 @@ public final class CodecUtil {
       return conf.get(
           CodecUtil.IO_ERASURECODE_CODEC_HHXOR_KEY,
           CodecUtil.IO_ERASURECODE_CODEC_HHXOR);
+    case ErasureCodeConstants.CLAY_CODE_CODEC_NAME :
+      return conf.get(
+        CodecUtil.IO_ERASURECODE_CODEC_CLAYCODE_KEY,
+        CodecUtil.IO_ERASURECODE_CODEC_CLAYCODE);
     default:
       // For custom codec, we throw exception if the factory is not configured
       String codecKey = "io.erasurecode.codec." + codec + ".coder";

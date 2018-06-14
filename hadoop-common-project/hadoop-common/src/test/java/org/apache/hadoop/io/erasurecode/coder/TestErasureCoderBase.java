@@ -38,7 +38,7 @@ public abstract class TestErasureCoderBase extends TestCoderBase {
   private ErasureCoder encoder;
   private ErasureCoder decoder;
 
-  protected int numChunksInBlock = 16;
+  protected int numChunksInBlock = 1024;
 
   /**
    * It's just a block for this test purpose. We don't use HDFS block here
