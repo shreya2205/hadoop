@@ -30,6 +30,7 @@ public final class ErasureCodeConstants {
   public static final String RS_LEGACY_CODEC_NAME = "rs-legacy";
   public static final String XOR_CODEC_NAME = "xor";
   public static final String HHXOR_CODEC_NAME = "hhxor";
+  public static final String CLAY_CODE_CODEC_NAME = "claycode";
   public static final String REPLICATION_CODEC_NAME = "replication";
 
   public static final ECSchema RS_6_3_SCHEMA = new ECSchema(

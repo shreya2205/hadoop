@@ -82,6 +82,9 @@ public final class ECSchema implements Serializable {
       throw new IllegalArgumentException(
           "No good option for numDataUnits or numParityUnits found ");
     }
+
+    checkOptions(codecName, tmpNumDataUnits, tmpNumParityUnits);
+
     this.numDataUnits = tmpNumDataUnits;
     this.numParityUnits = tmpNumParityUnits;
 
@@ -115,6 +118,8 @@ public final class ECSchema implements Serializable {
     assert (codecName != null && ! codecName.isEmpty());
     assert (numDataUnits > 0 && numParityUnits > 0);
 
+    checkOptions(codecName, numDataUnits, numParityUnits);
+
     this.codecName = codecName;
     this.numDataUnits = numDataUnits;
     this.numParityUnits = numParityUnits;
@@ -125,6 +130,27 @@ public final class ECSchema implements Serializable {
 
     // After some cleanup
     this.extraOptions = Collections.unmodifiableMap(extraOptions);
+
+
+  }
+
+  /**
+   * This function checks the validity of the given parameters, given the codec constraints.
+   * @param codecName name of the codec
+   * @param numDataUnits number of data units
+   * @param numParityUnits number of parity units
+   */
+  private void checkOptions(String codecName, int numDataUnits, int numParityUnits) {
+    int numTotalUnits = numDataUnits +  numParityUnits;
+
+    switch(codecName){
+
+      // m should divide n
+      case ErasureCodeConstants.CLAY_CODE_CODEC_NAME :
+        if(numTotalUnits%numParityUnits !=0)
+          throw new IllegalArgumentException("Number of parity units=" + numParityUnits
+            + " should divide total number of units=" + numTotalUnits);
+    }
   }
 
   private int extractIntOption(String optionKey, Map<String, String> options) {
@@ -177,6 +203,14 @@ public final class ECSchema implements Serializable {
    */
   public int getNumParityUnits() {
     return numParityUnits;
+  }
+
+  /**
+   * Get required total units count in a coding group
+   * @return count of total units
+   */
+  public int getAllUnits() {
+    return numDataUnits + numParityUnits;
   }
 
   /**

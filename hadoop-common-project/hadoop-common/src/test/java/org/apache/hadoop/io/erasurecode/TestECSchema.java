@@ -62,6 +62,15 @@ public class TestECSchema {
     assertEquals("Different constructors not equal", sameSchema, schema);
   }
 
+  @Test(expected = IllegalArgumentException.class)
+  public void testBadScheme(){
+    int numDataUnits = 10;
+    int numParityUnits = 4;
+
+    ECSchema schema = new ECSchema("claycode", 10, 4);
+
+  }
+
   @Test
   public void testEqualsAndHashCode() {
     Map<String, String> extraMap = new TreeMap<>();
