@@ -58,19 +58,17 @@ public class ClayCodeErasureDecodingStep implements ErasureCodingStep {
   public int getIntersectionScore(int[] z_vector) {}
 
   /**
-   * @param z plane index in integer form
-   * @return map of intersection score and z.
-   *
+   * @return map of intersection score and z
    * For each intersection score finds out all the planes whose intersection score = z.
    */
-  public Map<int , int[]> getAllIntersectionScore(int z) {}
+  public Map<Integer, int[]> getAllIntersectionScore() {}
 
   /**
    * @param x x coordinate of the node in plane
    * @param y y coordinate of the node in plane
    * @return x+y*q
    */
-  public  int getIndexInPlane(int x, int y) {}
+  public int getIndexInPlane(int x, int y) {}
 
 
   /**
@@ -86,15 +84,15 @@ public class ClayCodeErasureDecodingStep implements ErasureCodingStep {
    * @param temp temporary array which stores decoupled values
    * @return decoupled values for all non-null nodes
    */
-  public ByteBuffer[] getDecoupledPlane(int z_vector, ByteBuffer[] temp[]) {}
+  public ByteBuffer[] getDecoupledPlane(int z_vector, ByteBuffer[] temp) {}
 
 
   /**
-   * @param input1 first input for matrix
-   * @param input2 second input for matrix
-   * @return two remaining outputs using matrix
+   * @param inputs
+   * @param outputs
+   * @return
    */
-  public int[] getPairWiseCouple(int input1, int input2) {}
+  public int[] getPairWiseCouple(ByteBuffer[] inputs, ByteBuffer[] outputs) {}
 
   @Override
   public ECBlock[] getInputBlocks() {
