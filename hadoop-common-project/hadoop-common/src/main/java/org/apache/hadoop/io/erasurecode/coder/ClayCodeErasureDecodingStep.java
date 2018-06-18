@@ -5,6 +5,8 @@ import org.apache.hadoop.io.erasurecode.ECChunk;
 import org.apache.hadoop.io.erasurecode.rawcoder.RawErasureDecoder;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.Map;
 
 public class ClayCodeErasureDecodingStep implements ErasureCodingStep {
 
@@ -37,6 +39,62 @@ public class ClayCodeErasureDecodingStep implements ErasureCodingStep {
 
     }
 
+    /**
+     * @param z_vector plane index in vector form
+     * @return z plane index in integer form
+     */
+    public int getZ(int[] z_vector) {}
+
+    /**
+     * @param z plane index in integer form
+     * @return plane index in vector form
+     */
+    public int[] getZVector(int z) {}
+
+    /**
+     * @param z_vector plane in vector form
+     * @return intersection score of the plane
+     */
+    public int getIntersectionScore(int[] z_vector) {}
+
+    /**
+     * @param z plane index in integer form
+     * @return map of intersection score and z.
+     *
+     * For each intersection score finds out all the planes whose intersection score = z.
+     */
+    public Map<int , int[]> getAllIntersectionScore(int z) {}
+
+    /**
+     * @param x x coordinate of the node in plane
+     * @param y y coordinate of the node in plane
+     * @return x+y*q
+     */
+    public  int getIndexInPlane(int x, int y) {}
+
+
+    /**
+     * @param indexInPlane index of the node in the plane (x+y*q)
+     * @param z_vector plane index in vector form
+     * @return return the error type for a node in a plane.
+     * Error types possible are : {0,1,2}
+     */
+    public int getErrorType(int indexInPlane, int[] z_vector) {}
+
+    /**
+     * @param z_vector plane index in vector form
+     * @param temp temporary array which stores decoupled values
+     * @return decoupled values for all non-null nodes
+     */
+    public ByteBuffer[] getDecoupledPlane(int z_vector, ByteBuffer[] temp[]) {}
+
+
+    /**
+     * @param input1 first input for matrix
+     * @param input2 second input for matrix
+     * @return two remaining outputs using matrix
+     */
+    public int[] getPairWiseCouple(int input1, int input2) {}
 
     @Override
     public ECBlock[] getInputBlocks() {
