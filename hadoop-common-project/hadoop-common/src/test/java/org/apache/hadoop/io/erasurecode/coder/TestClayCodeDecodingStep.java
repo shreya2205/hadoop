@@ -2,10 +2,11 @@ package org.apache.hadoop.io.erasurecode.coder;
 
 import org.apache.hadoop.io.erasurecode.coder.ClayCodeErasureDecodingStep;
 
-import org.junit.Before;
+import org.junit.After;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertNotEquals;
 
 public class TestClayCodeDecodingStep {
@@ -14,8 +15,9 @@ public class TestClayCodeDecodingStep {
   private int numDataUnits, numParityUnits;
   private ClayCodeErasureDecodingStep.ClayCodeUtil util;
 
-  @Before
-  public void setup(){
+
+  @org.junit.Test
+  public void testGetZ() {
 
     erasedIndexes = new int[]{1,3,4};
     numDataUnits = 6;
@@ -23,14 +25,59 @@ public class TestClayCodeDecodingStep {
 
     util = new ClayCodeErasureDecodingStep.ClayCodeUtil(erasedIndexes,numDataUnits,numParityUnits);
 
-  }
-
-  @org.junit.Test
-  public void testGetZ() {
-
     assertEquals(util.getZ(new int[]{0,2,1}) ,  7);
     assertEquals(util.getZ(new int[]{1,2,2}) , 17);
+  }
+
+  @Test
+  public void testGetZVector(){
+
+    erasedIndexes = new int[]{1,3,4};
+    numDataUnits = 6;
+    numParityUnits = 3;
+
+    util = new ClayCodeErasureDecodingStep.ClayCodeUtil(erasedIndexes,numDataUnits,numParityUnits);
+
+    assertArrayEquals(util.getZVector(25), new int[]{2,2,1});
+    assertArrayEquals(util.getZVector(8), new int[]{0,2,2});
+
+    erasedIndexes = new int[]{5,9,10};
+    numDataUnits = 16;
+    numParityUnits = 4;
+
+    util = new ClayCodeErasureDecodingStep.ClayCodeUtil(erasedIndexes,numDataUnits,numParityUnits);
+
+    assertArrayEquals(util.getZVector(1012), new int[]{3,3,3,1,0});
+    assertArrayEquals(util.getZVector(786), new int[]{3,0,1,0,2});
 
   }
 
+  @Test
+  public void testGetErasureType(){
+
+    erasedIndexes = new int[]{1,3,4};
+    numDataUnits = 6;
+    numParityUnits = 3;
+
+    util = new ClayCodeErasureDecodingStep.ClayCodeUtil(erasedIndexes,numDataUnits,numParityUnits);
+
+    assertEquals(util.getErasureType(1, new int[]{0,1,1}), 1);
+    assertEquals(util.getErasureType(4, new int[]{0,1,1}), 0);
+    assertEquals(util.getErasureType(3, new int[]{0,1,1}), 2);
+
+    erasedIndexes = new int[]{5,9,10};
+    numDataUnits = 16;
+    numParityUnits = 4;
+
+    util = new ClayCodeErasureDecodingStep.ClayCodeUtil(erasedIndexes,numDataUnits,numParityUnits);
+
+    assertEquals(util.getErasureType(1, new int[]{2,1,1,1,0}), 1);
+
+  }
+
+  @After
+  public void cleanUp(){
+    erasedIndexes = null;
+    util = null;
+  }
 }
