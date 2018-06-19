@@ -82,17 +82,22 @@ public class ClayCodeErasureDecodingStep implements ErasureCodingStep {
   }
 
   /**
+   * Intersection score of a plane is the number of hole-dot pairs in that plane.
+   *
+   *       -------*----
+   *      |   |   |   |
+   *      --- *-- O---
+   *     |   |   |   |
+   *     + ----------
+   *    |   |   |   |
+   *    O --------- *
+   *
+   * + indicates both a dot * and a erasure(hole) O
+   * The above has q = 4 and t = 4.
+   * So intersection of the above plane = 1.
+   *
    * @param z_vector plane in vector form
    * @return intersection score of the plane
-   *
-   * intersection score of a plane is the number of hole-dot pairs in that plane.
-   *
-   * for q=4, t=4
-   * -----------
-   * /  /  /  /
-   * /  /  /  /
-   * ---
-   *
    *
    */
 
@@ -112,8 +117,8 @@ public class ClayCodeErasureDecodingStep implements ErasureCodingStep {
   }
 
   /**
-   * @return map of intersection score and z
-   * For each intersection score finds out all the planes whose intersection score = z.
+   * @return map of intersection score and z index
+   * For each intersection score finds out indices of all the planes whose intersection score = i.
    */
   public Map<Integer, ArrayList<Integer>> getAllIntersectionScore() {
     Map<Integer,ArrayList<Integer>> hm = new HashMap<>();
@@ -177,7 +182,7 @@ public class ClayCodeErasureDecodingStep implements ErasureCodingStep {
    * Erasure types possible are : {0,1,2}
    */
   public int getErasureType(int indexInPlane, int[] z_vector) {
-    int[] nodeCoordinates = getNodeCoordinates();
+    int[] nodeCoordinates = getNodeCoordinates(indexInPlane);
 
     // there is a hole-dot pair at the given index => type 0
     if(z_vector[nodeCoordinates[1]] == nodeCoordinates[0])
