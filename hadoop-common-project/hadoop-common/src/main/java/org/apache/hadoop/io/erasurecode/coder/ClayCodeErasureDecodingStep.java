@@ -49,6 +49,9 @@ public class ClayCodeErasureDecodingStep implements ErasureCodingStep {
   }
 
 
+  /**
+   * Basic utilities for ClayCode encode/decode and repair operations
+   */
   public static class ClayCodeUtil{
     private int q,t;
     private int[] erasedIndexes;
@@ -215,11 +218,44 @@ public class ClayCodeErasureDecodingStep implements ErasureCodingStep {
 
   /**
    * Convert all the input symbols of the given plane into its decoupled form. We use the rsRawDecoder to achieve this.
-   * @param z_vector plane index in vector form
+   * @param z plane index
    * @param temp temporary array which stores decoupled values
    * @return decoupled values for all non-null nodes
    */
-  public ByteBuffer[] getDecoupledPlane(int z_vector, ByteBuffer[] temp) { return null; }
+  public void getDecoupledPlane(ByteBuffer[][] inputs, ByteBuffer[] temp, int z)
+    throws IOException {
+    int[] z_vec = util.getZVector(z);
+
+    ByteBuffer[] outputs;
+
+    for(int i=0; i<util.q*util.t; i++){
+      int[] coordinates = util.getNodeCoordinates(i);
+
+      if(inputs[z][i] != null) {
+        if (z_vec[coordinates[1]] == coordinates[0])
+          temp[i] = inputs[z][i];
+        else {
+          
+          int[] coupleZvec = z_vec;
+          coupleZvec[coordinates[1]] = coordinates[0];
+          int coupleZIndex = util.getZ(coupleZvec);
+          int coupleCoordinates = util.getNodeIndex(z_vec[coordinates[1]], coordinates[1]);
+
+          outputs = new ByteBuffer[2];
+
+          getPairWiseCouple(new ByteBuffer[]{inputs[z][i], inputs[coupleZIndex][coupleCoordinates], null, null}, outputs);
+
+          temp[i] = outputs[0];
+
+        }
+      }
+      else{
+        temp[i] = null;
+      }
+
+    }
+
+  }
 
 
   /**
@@ -228,7 +264,19 @@ public class ClayCodeErasureDecodingStep implements ErasureCodingStep {
    * @param inputs pairwise known couples
    * @param outputs pairwise couples of the known values
    */
-  public void getPairWiseCouple(ByteBuffer[] inputs, ByteBuffer[] outputs) {}
+  public void getPairWiseCouple(ByteBuffer[] inputs, ByteBuffer[] outputs)
+    throws IOException {
+    int[] lostCouples = new int[2];
+
+    int k=0;
+    for(int i=0; i<inputs.length; ++i){
+      if(inputs[i]==null)
+        lostCouples[k++] = i;
+    }
+
+    pairWiseDecoder.decode(inputs, lostCouples, outputs);
+
+  }
 
   @Override
   public ECBlock[] getInputBlocks() {
