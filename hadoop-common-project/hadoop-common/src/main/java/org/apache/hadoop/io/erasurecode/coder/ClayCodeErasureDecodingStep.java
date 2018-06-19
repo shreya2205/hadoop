@@ -112,13 +112,13 @@ public class ClayCodeErasureDecodingStep implements ErasureCodingStep {
 
     public int getIntersectionScore(int[] z_vector) {
       int intersectionScore=0;
-      for (int i =0; i < this.erasedIndexes.length ; i=i+1) {
+      for (int i =0; i < this.erasedIndexes.length ; ++i) {
         int index = this.erasedIndexes[i];
         int[] a = getNodeCoordinates(index);
         int x = a[0];
         int y = a[1];
 
-        if (z_vector[y-1] == x) {
+        if (z_vector[y] == x) {
           intersectionScore = intersectionScore + 1;
         }
       }
@@ -136,7 +136,7 @@ public class ClayCodeErasureDecodingStep implements ErasureCodingStep {
         int intersectionScore = getIntersectionScore(z_vector);
 
         if (!hm.containsKey(intersectionScore)) {
-          ArrayList arraylist = new ArrayList<Integer>();
+          ArrayList<Integer> arraylist = new ArrayList<>();
           arraylist.add(i);
           hm.put(intersectionScore,arraylist);
         }
