@@ -5,6 +5,10 @@ import org.apache.hadoop.io.erasurecode.coder.ClayCodeErasureDecodingStep;
 import org.junit.After;
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -52,6 +56,7 @@ public class TestClayCodeDecodingStep {
 
   }
 
+
   @Test
   public void testGetErasureType(){
 
@@ -80,4 +85,52 @@ public class TestClayCodeDecodingStep {
     erasedIndexes = null;
     util = null;
   }
+
+  @org.junit.Test
+  public void testGetIntersectionScore() {
+
+    erasedIndexes = new int[]{1,3,4};
+    numDataUnits = 6;
+    numParityUnits = 3;
+
+    util = new ClayCodeErasureDecodingStep.ClayCodeUtil(erasedIndexes,numDataUnits,numParityUnits);
+
+    assertEquals(util.getIntersectionScore(new int[]{0,2,1}),0);
+    assertEquals(util.getIntersectionScore(new int[]{1,2,2}),1);
+    assertEquals(util.getIntersectionScore(new int[]{1,1,1}),2);
+  }
+
+  @Test
+  public void testGetNodeCoordinates() {
+
+    erasedIndexes = new int[]{1,3,4};
+    numDataUnits = 6;
+    numParityUnits = 3;
+
+    util = new ClayCodeErasureDecodingStep.ClayCodeUtil(erasedIndexes,numDataUnits,numParityUnits);
+
+    assertArrayEquals(util.getNodeCoordinates(1), new int[]{1,0});
+    assertArrayEquals(util.getNodeCoordinates(5), new int[]{2,1});
+  }
+
+  @Test
+  public void testGetAllIntersectionScore() {
+    erasedIndexes = new int[]{2,5};
+    numDataUnits = 4;
+    numParityUnits = 2;
+
+    util = new ClayCodeErasureDecodingStep.ClayCodeUtil(erasedIndexes,numDataUnits,numParityUnits);
+
+    assertEquals(util.getAllIntersectionScore().get(0),new ArrayList<>(Arrays.asList(2,6)));
+    assertEquals(util.getAllIntersectionScore().get(1),new ArrayList<>(Arrays.asList(0,3,4,7)));
+
+    erasedIndexes = new int[]{1};
+    numDataUnits = 16;
+    numParityUnits = 4;
+
+    util = new ClayCodeErasureDecodingStep.ClayCodeUtil(erasedIndexes,numDataUnits,numParityUnits);
+    assertEquals(util.getAllIntersectionScore().get(1).size(),256);
+
+  }
+
 }
