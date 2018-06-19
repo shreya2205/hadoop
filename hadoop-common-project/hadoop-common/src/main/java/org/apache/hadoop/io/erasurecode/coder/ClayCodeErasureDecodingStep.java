@@ -6,6 +6,10 @@ import org.apache.hadoop.io.erasurecode.rawcoder.RawErasureDecoder;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.sql.Array;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class ClayCodeErasureDecodingStep implements ErasureCodingStep {
@@ -80,24 +84,75 @@ public class ClayCodeErasureDecodingStep implements ErasureCodingStep {
   /**
    * @param z_vector plane in vector form
    * @return intersection score of the plane
+   *
+   * intersection score of a plane is the number of hole-dot pairs in that plane.
+   *
+   * for q=4, t=4
+   * -----------
+   * /  /  /  /
+   * /  /  /  /
+   * ---
+   *
+   *
    */
-  public int getIntersectionScore(int[] z_vector) {}
+
+  public int getIntersectionScore(int[] z_vector) {
+    int intersectionScore=0;
+    for (int i =0; i < this.erasedIndexes.length ; i=i+1) {
+      int index = this.erasedIndexes[i];
+      int[] a = getNodeCoordinates(index);
+      int x = a[0];
+      int y = a[1];
+
+      if (z_vector[y-1] == x) {
+        intersectionScore = intersectionScore + 1;
+      }
+    }
+    return intersectionScore;
+  }
 
   /**
    * @return map of intersection score and z
    * For each intersection score finds out all the planes whose intersection score = z.
    */
-  public Map<Integer, int[]> getAllIntersectionScore() {}
+  public Map<Integer, ArrayList<Integer>> getAllIntersectionScore() {
+    Map<Integer,ArrayList<Integer>> hm = new HashMap<>();
+    for (int i=0;i < (int) Math.pow(q,t) ; i=i+1) {
+      int[] z_vector = getZVector(i);
+      int intersectionScore = getIntersectionScore(z_vector);
+
+      if (!hm.containsKey(intersectionScore)) {
+        ArrayList arraylist = new ArrayList<Integer>();
+        arraylist.add(i);
+        hm.put(intersectionScore,arraylist);
+      }
+      else {
+        hm.get(intersectionScore).add(i);
+      }
+    }
+    return hm;
+  }
 
   /**
    * @param x x coordinate of the node in plane
    * @param y y coordinate of the node in plane
    * @return x+y*q
    */
-  public int getIndexInPlane(int x, int y) {
-    return (x + q*y);
+
+  public int getNodeIndex(int x, int y) {
+    return x+q*y;
   }
 
+  /**
+   * @param index index of the node in integer
+   * @return x,y coordinate of the node
+   */
+  public int[] getNodeCoordinates(int index) {
+    int[] a = new int[2];
+    a[0] = index%q;
+    a[1] = index/t;
+    return a;
+  }
 
 
   /**
