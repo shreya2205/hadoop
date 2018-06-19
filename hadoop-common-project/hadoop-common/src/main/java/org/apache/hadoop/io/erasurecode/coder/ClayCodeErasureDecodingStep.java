@@ -17,6 +17,10 @@ public class ClayCodeErasureDecodingStep implements ErasureCodingStep {
   private RawErasureDecoder rsRawDecoder;
   private final int SUB_PACKETIZATION;
 
+
+  private final int q, t;
+
+
   /**
    * Basic constructor with necessary info
    * @param inputs Blocks to encode
@@ -37,6 +41,8 @@ public class ClayCodeErasureDecodingStep implements ErasureCodingStep {
     this.pairWiseDecoder = pairWiseDecoder;
     this.SUB_PACKETIZATION = SUB_PACKETIZATION;
 
+    this.q = rsRawDecoder.getNumParityUnits();
+    this.t = (rsRawDecoder.getNumDataUnits() + rsRawDecoder.getNumParityUnits())/rsRawDecoder.getNumParityUnits();
   }
 
   /**
@@ -68,7 +74,10 @@ public class ClayCodeErasureDecodingStep implements ErasureCodingStep {
    * @param y y coordinate of the node in plane
    * @return x+y*q
    */
-  public int getIndexInPlane(int x, int y) {}
+  public int getIndexInPlane(int x, int y) {
+    return x+q*y;
+  }
+
 
 
   /**
