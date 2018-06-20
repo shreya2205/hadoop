@@ -50,7 +50,7 @@ public class ClayCodeErasureDecodingStep implements ErasureCodingStep {
 
 
   /**
-   * Basic utilities for ClayCode encode/decode and repair operations
+   * Basic utilities for ClayCode encode/decode and repair operations.
    */
   public static class ClayCodeUtil{
     private int q,t;
@@ -64,7 +64,7 @@ public class ClayCodeErasureDecodingStep implements ErasureCodingStep {
     /**
      * Get the index of the plane in integer from a base q notation.
      * @param z_vector plane index in vector form
-     * @return z plane index
+     * @return z plane index in integer form
      */
     public int getZ(int[] z_vector) {
       int z =0;
@@ -79,7 +79,7 @@ public class ClayCodeErasureDecodingStep implements ErasureCodingStep {
 
     /**
      * Get the base q notation of the plane
-     * @param z plane index
+     * @param z plane index in integer form
      * @return plane index in vector form
      */
     public int[] getZVector(int z) {
@@ -104,7 +104,7 @@ public class ClayCodeErasureDecodingStep implements ErasureCodingStep {
      *    |   |   |   |
      *    O --------- *
      *
-     * + indicates both a dot * and a erasure(hole) O
+     * + indicates both a dot and hole pair, * denotes a dot and a erasure(hole) O.
      * The above has q = 4 and t = 4.
      * So intersection of the above plane = 1.
      *
@@ -130,7 +130,8 @@ public class ClayCodeErasureDecodingStep implements ErasureCodingStep {
 
     /**
      * @return map of intersection score and z index
-     * For each intersection score finds out indices of all the planes whose intersection score = i.
+     * For each intersection score finds out indices
+     * of all the planes whose intersection score = i.
      */
     public Map<Integer, ArrayList<Integer>> getAllIntersectionScore() {
       Map<Integer,ArrayList<Integer>> hm = new HashMap<>();
@@ -207,7 +208,7 @@ public class ClayCodeErasureDecodingStep implements ErasureCodingStep {
         if(this.erasedIndexes[i] == dotInColumn)
           return 2;
       }
-
+      // there is not hole dot pair in the same column => type 1
       return 1;
 
     }
