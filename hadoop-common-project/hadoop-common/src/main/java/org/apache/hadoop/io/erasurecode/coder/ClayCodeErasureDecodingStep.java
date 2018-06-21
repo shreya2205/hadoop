@@ -140,7 +140,7 @@ public class ClayCodeErasureDecodingStep implements ErasureCodingStep {
      * For each intersection score finds out indices of all the planes whose intersection score = i.
      * @return map of intersection scores and the corresponding z indexes
      */
-    public Map<Integer, ArrayList<Integer>> getAllIntersectionScore() {
+    public Map<Integer, ArrayList<Integer>> getAllIntersectionScores() {
       Map<Integer,ArrayList<Integer>> hm = new HashMap<>();
       for (int i=0;i < (int) Math.pow(q,t) ; i=i+1) {
         int[] z_vector = getZVector(i);
@@ -312,6 +312,11 @@ public class ClayCodeErasureDecodingStep implements ErasureCodingStep {
 
   }
 
+  /**
+   * Decode and complete the decoupled plane
+   * @param decoupledPlane the plane to be decoded
+   * @throws IOException
+   */
   public void decodeDecoupledPlane(ByteBuffer[] decoupledPlane)
     throws IOException {
 
@@ -336,19 +341,27 @@ public class ClayCodeErasureDecodingStep implements ErasureCodingStep {
   }
 
 
-  public void doDecodeMulti(ByteBuffer[][] inputs, int[] erasedIndexes, ByteBuffer[][] outputs)
+  /**
+   * Decode multiple erased nodes in thr given inputs. The algorithm decodes the planes of different 
+   * intersections scores sequentially starting from IS=0 to its maximum possible value.  
+   * @param inputs numDataUnits * subPacket sized byte buffers
+   * @param outputs
+   * @throws IOException
+   */
+  public void doDecodeMulti(ByteBuffer[][] inputs, ByteBuffer[][] outputs)
     throws IOException {
 
-    Map<Integer, ArrayList<Integer>> ISMap = util.getAllIntersectionScore();
+    Map<Integer, ArrayList<Integer>> ISMap = util.getAllIntersectionScores();
     int maxIS = Collections.max(ISMap.keySet());
 
 
-    // i is the current IS
-    for (int i = 0; i <= maxIS; ++i) {
+    // is is the current intersection score
+    for (int is = 0; is <= maxIS; ++is) {
 
-      ArrayList<Integer> realZIndexes = ISMap.get(i);
+      ArrayList<Integer> realZIndexes = ISMap.get(is);
 
-      // Given the IS, for each zIndex in ISMap.get(i), temp stores decoupled plane in the same order.
+      // Given the IS, for each zIndex in ISMap.get(i), temp stores the corresponding
+      // decoupled plane in the same order as in the array list.
       ByteBuffer[][] temp = new ByteBuffer[realZIndexes.size()][inputs[0].length];
       int idx = 0;
 
@@ -361,12 +374,12 @@ public class ClayCodeErasureDecodingStep implements ErasureCodingStep {
       }
 
 
-      // allocate temp buffers for the pairWiseDecoding to find lost A
+      // allocate temp buffers for the pairWiseDecoding to find lost inputs
       ByteBuffer firstValidInput = ClayCodeUtil.findFirstValidInput(temp[0]);
       final int bufSize = firstValidInput.remaining();
       final boolean isDirect = firstValidInput.isDirect();
 
-      // temporary buffers for pairwise decoding
+
       ByteBuffer[] tmpOutputs = new ByteBuffer[2];
 
       for (int p = 0; p < 2; ++p)
@@ -374,7 +387,6 @@ public class ClayCodeErasureDecodingStep implements ErasureCodingStep {
 
 
       for (int j = 0; j < temp.length; ++j) {
-
         for (int k = 0; k < erasedIndexes.length; ++k) {
 
           int erasureType = util.getErasureType(k, realZIndexes.get(j));
@@ -382,32 +394,34 @@ public class ClayCodeErasureDecodingStep implements ErasureCodingStep {
           if (erasureType == 0) {
             inputs[realZIndexes.get(j)][k] = temp[j][k];
           }
-          else if (erasureType == 1) {
+          else {
+
+            // determine the couple plane and coordinates
             int[] z_vector = util.getZVector(realZIndexes.get(j));
             int[] coordinates = util.getNodeCoordinates(k);
-            int couplePlaneIndex = util.getCouplePlaneIndex(coordinates,realZIndexes.get(j));
-            int coupleIndex = util.getNodeIndex(z_vector[coordinates[1]],coordinates[1]);
+            int couplePlaneIndex = util.getCouplePlaneIndex(coordinates, realZIndexes.get(j));
+            int coupleIndex = util.getNodeIndex(z_vector[coordinates[1]], coordinates[1]);
 
-            getPairWiseCouple(new ByteBuffer[]{null,inputs[couplePlaneIndex][coupleIndex], temp[j][k],null},tmpOutputs);
+            if (erasureType == 1) {
 
-            inputs[realZIndexes.get(j)][k] = tmpOutputs[0];
+              getPairWiseCouple(new ByteBuffer[]{null, inputs[couplePlaneIndex][coupleIndex], temp[j][k], null}, tmpOutputs);
 
-          } else {
+              inputs[realZIndexes.get(j)][k] = tmpOutputs[0];
 
-            int[] z_vector = util.getZVector(realZIndexes.get(j));
-            int[] coordinates = util.getNodeCoordinates(k);
-            int couplePlaneIndex = util.getCouplePlaneIndex(coordinates,realZIndexes.get(j));
-            int coupleIndex = util.getNodeIndex(z_vector[coordinates[1]],coordinates[1]);
+            } else {
 
-            int tempCoupleIndex = realZIndexes.indexOf(couplePlaneIndex);
+              // determine the corresponding index in the temp buffers
+              int tempCoupleIndex = realZIndexes.indexOf(couplePlaneIndex);
 
-            getPairWiseCouple(new ByteBuffer[]{null, null, temp[j][k], temp[tempCoupleIndex][coupleIndex]}, tmpOutputs);
+              getPairWiseCouple(new ByteBuffer[]{null, null, temp[j][k], temp[tempCoupleIndex][coupleIndex]}, tmpOutputs);
 
-            inputs[realZIndexes.get(j)][k] = tmpOutputs[0];
+              inputs[realZIndexes.get(j)][k] = tmpOutputs[0];
 
+            }
           }
         }
 
+        // clear the temp- buffers for reuse
         for(int p=0; p<2; ++p)
           tmpOutputs[p].clear();
 
@@ -419,6 +433,11 @@ public class ClayCodeErasureDecodingStep implements ErasureCodingStep {
   }
 
 
+  /**
+   * Fill the outputs from the determined inputs
+   * @param inputs
+   * @param outputs
+   */
   public void fillOutputs(ByteBuffer[][] inputs, ByteBuffer[][] outputs){
     for (int i=0;i< (int) Math.pow(util.q,util.t);i++){
       for (int j=0; j < erasedIndexes.length ; j++){
