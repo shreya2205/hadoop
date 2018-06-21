@@ -7,12 +7,9 @@ public class ClayCodeErasureEncoder extends ErasureEncoder{
 
     private RawErasureDecoder pairWiseDecoder;
     private RawErasureDecoder rsRawDecoder;
-    private final int SUB_PACKETIZATION;
 
     public ClayCodeErasureEncoder(ErasureCoderOptions options) {
         super(options);
-        int exp = (getNumDataUnits() + getNumParityUnits()) / getNumParityUnits();
-        this.SUB_PACKETIZATION = (int) Math.pow(getNumParityUnits(), exp);
     }
 
   @Override
@@ -47,7 +44,7 @@ public class ClayCodeErasureEncoder extends ErasureEncoder{
 
         // in this implementation encoding and decoding are achieved via decode
         return new ClayCodeErasureDecodingStep(inputs, erasedIndexes, getOutputBlocks(blockGroup),
-                pairWiseDecoder, rsRawDecoder, SUB_PACKETIZATION);
+                pairWiseDecoder, rsRawDecoder);
     }
 
 
