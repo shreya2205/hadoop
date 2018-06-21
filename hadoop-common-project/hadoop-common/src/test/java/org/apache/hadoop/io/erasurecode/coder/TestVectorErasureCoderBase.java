@@ -28,8 +28,8 @@ import static org.junit.Assert.fail;
 /**
  * Erasure coder test base with utilities for hitchhiker.
  */
-public abstract class TestHHErasureCoderBase extends TestErasureCoderBase{
-  protected int subPacketSize = 2;
+public abstract class TestVectorErasureCoderBase extends TestErasureCoderBase{
+  protected int subPacketSize;
 
   @Override
   protected void performCodingStep(ErasureCodingStep codingStep) {

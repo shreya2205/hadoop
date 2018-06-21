@@ -46,6 +46,10 @@ public class ClayCodeErasureDecodingStep implements ErasureCodingStep {
     this.util = new ClayCodeUtil(erasedIndexes, rsRawDecoder.getNumDataUnits(), rsRawDecoder.getNumParityUnits());
   }
 
+  private int getSubPacketSize(){
+    //return (int) Math.pow(util.q, util.t);
+    return 8;
+  }
 
   /**
    * Basic utilities for ClayCode encode/decode and repair operations.
@@ -359,10 +363,10 @@ public class ClayCodeErasureDecodingStep implements ErasureCodingStep {
     for (int is = 0; is <= maxIS; ++is) {
 
       ArrayList<Integer> realZIndexes = ISMap.get(is);
-
+      if(realZIndexes==null) continue;
       // Given the IS, for each zIndex in ISMap.get(i), temp stores the corresponding
       // decoupled plane in the same order as in the array list.
-      ByteBuffer[][] temp = new ByteBuffer[realZIndexes.size()][inputs[0].length];
+      ByteBuffer[][] temp = new ByteBuffer[realZIndexes.size()][rsRawDecoder.getNumDataUnits()+rsRawDecoder.getNumParityUnits()];
       int idx = 0;
 
       for (int z : realZIndexes) {
@@ -479,7 +483,50 @@ public class ClayCodeErasureDecodingStep implements ErasureCodingStep {
 
   @Override
   public void performCoding(ECChunk[] inputChunks, ECChunk[] outputChunks) throws IOException {
+    if (erasedIndexes.length == 0) {
+      return;
+    }
 
+    ByteBuffer[] inputBuffers = ECChunk.toBuffers(inputChunks);
+    ByteBuffer[] outputBuffers = ECChunk.toBuffers(outputChunks);
+    performCoding(inputBuffers, outputBuffers);
+  }
+
+  private void performCoding(ByteBuffer[] inputs, ByteBuffer[] outputs)
+    throws IOException {
+
+    final int numDataUnits = rsRawDecoder.getNumDataUnits();
+    final int numParityUnits = rsRawDecoder.getNumParityUnits();
+    final int numTotalUnits = numDataUnits + numParityUnits;
+    final int subPacketSize = getSubPacketSize();
+
+//    ByteBuffer fisrtValidInput = ClayCodeUtil.findFirstValidInput(inputs);
+//    final int bufSize = fisrtValidInput.remaining();
+
+    if (inputs.length != numTotalUnits * getSubPacketSize()) {
+      throw new IllegalArgumentException("Invalid inputs length");
+    }
+
+    if (outputs.length != erasedIndexes.length * getSubPacketSize()) {
+      throw new IllegalArgumentException("Invalid outputs length");
+    }
+
+    // inputs length = numDataUnits * subPacketizationSize
+    ByteBuffer[][] newIn = new ByteBuffer[subPacketSize][numTotalUnits];
+    for (int i = 0; i < subPacketSize; ++i) {
+      for (int j = 0; j < numTotalUnits; ++j) {
+        newIn[i][j] = inputs[i * numTotalUnits + j];
+      }
+    }
+
+    ByteBuffer[][] newOut = new ByteBuffer[subPacketSize][erasedIndexes.length];
+    for (int i = 0; i < subPacketSize; ++i) {
+      for (int j = 0; j < erasedIndexes.length; ++j) {
+        newOut[i][j] = outputs[i * erasedIndexes.length + j];
+      }
+    }
+
+    doDecodeMulti(newIn,newOut);
   }
 
   @Override
