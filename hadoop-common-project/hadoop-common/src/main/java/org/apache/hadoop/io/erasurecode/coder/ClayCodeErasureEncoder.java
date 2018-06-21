@@ -15,8 +15,22 @@ public class ClayCodeErasureEncoder extends ErasureEncoder{
         this.SUB_PACKETIZATION = (int) Math.pow(getNumParityUnits(), exp);
     }
 
+  @Override
+  protected ECBlock[] getInputBlocks(ECBlockGroup blockGroup) {
+    ECBlock[] inputBlocks = new ECBlock[getNumDataUnits() +
+      getNumParityUnits()];
 
-    @Override
+    System.arraycopy(blockGroup.getDataBlocks(), 0, inputBlocks,
+      0, getNumDataUnits());
+
+    System.arraycopy(blockGroup.getParityBlocks(), 0, inputBlocks,
+      getNumDataUnits(), getNumParityUnits());
+
+    return inputBlocks;
+  }
+
+
+  @Override
     protected ErasureCodingStep prepareEncodingStep(ECBlockGroup blockGroup) {
 
         RawErasureDecoder rsRawDecoder = checkCreateRSRawDecoder();
@@ -31,6 +45,7 @@ public class ClayCodeErasureEncoder extends ErasureEncoder{
             erasedIndexes[i] = getNumDataUnits() + i ;
         }
 
+        // in this implementation encoding and decoding are achieved via decode
         return new ClayCodeErasureDecodingStep(inputs, erasedIndexes, getOutputBlocks(blockGroup),
                 pairWiseDecoder, rsRawDecoder, SUB_PACKETIZATION);
     }
@@ -54,6 +69,8 @@ public class ClayCodeErasureEncoder extends ErasureEncoder{
         }
         return rsRawDecoder;
     }
+
+
 
     @Override
     public void release() {
