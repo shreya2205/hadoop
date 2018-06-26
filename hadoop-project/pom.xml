@@ -586,7 +586,11 @@
         <artifactId>hadoop-ozone-docs</artifactId>
         <version>${hdds.version}</version>
       </dependency>
-
+      <dependency>
+        <groupId>org.apache.hadoop</groupId>
+        <artifactId>hadoop-ozone-filesystem</artifactId>
+        <version>${hdds.version}</version>
+      </dependency>
       <dependency>
         <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-hdds-common</artifactId>
@@ -2060,10 +2064,5 @@
   </profiles>
 
   <repositories>
-    <repository>
-      <id>dynamodb-local-oregon</id>
-      <name>DynamoDB Local Release Repository</name>
-      <url>https://s3-us-west-2.amazonaws.com/dynamodb-local/release</url>
-    </repository>
   </repositories>
 </project>
