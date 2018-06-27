@@ -4,6 +4,7 @@ import org.apache.hadoop.HadoopIllegalArgumentException;
 import org.apache.hadoop.io.erasurecode.ECBlock;
 import org.apache.hadoop.io.erasurecode.ECChunk;
 import org.apache.hadoop.io.erasurecode.rawcoder.RawErasureDecoder;
+import org.apache.hadoop.io.erasurecode.rawcoder.util.DumpUtil;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -62,10 +63,13 @@ public class ClayCodeErasureDecodingStep implements ErasureCodingStep {
       return;
     }
 
+    DumpUtil.dumpChunks("Init Inputs", inputChunks);
+    DumpUtil.dumpChunks("Init outputs", outputChunks);
     ByteBuffer[] inputBuffers = ECChunk.toBuffers(inputChunks);
     ByteBuffer[] outputBuffers = ECChunk.toBuffers(outputChunks);
     performCoding(inputBuffers, outputBuffers);
-
+    DumpUtil.dumpChunks("mod Inputs", inputChunks);
+    DumpUtil.dumpChunks("mod outputs", outputChunks);
 
   }
 
@@ -104,10 +108,129 @@ public class ClayCodeErasureDecodingStep implements ErasureCodingStep {
       }
     }
 
-    doDecodeMulti(newIn, newOut, bufSize, isDirect);
+    if(erasedIndexes.length==1){
+      doDecodeSingle(newIn, newOut, erasedIndexes[0], bufSize, isDirect);
+    }else {
+      doDecodeMulti(newIn, newOut, bufSize, isDirect);
+    }
 
   }
+  
+  
+  
+  
+  private void doDecodeSingle(ByteBuffer[][] inputs, 
+                              ByteBuffer[][] outputs, 
+                              int erasedIndex,
+                              int bufSize, 
+                              boolean isDirect)
+    throws IOException{
 
+    int[][] inputPositions = new int[inputs.length][inputs[0].length];
+    for (int i = 0; i < inputs.length; ++i) {
+      for (int j = 0; j < inputs[i].length; ++j) {
+        if (inputs[i][j] != null) {
+          inputPositions[i][j] = inputs[i][j].position();
+        }
+      }
+    }
+
+    int[][] outputPositions = new int[outputs.length][outputs[0].length];
+    for (int i = 0; i < outputs.length; i++) {
+      for (int j = 0; j < outputs[i].length; j++) {
+        if (outputs[i][j] != null) {
+          outputPositions[i][j] = outputs[i][j].position();
+        }
+      }
+    }
+    
+    int[] helperIndexes = util.getHelperPlanesIndexes(erasedIndex);
+    ByteBuffer[][] helperCoupledPlanes = new ByteBuffer[helperIndexes.length][inputs[0].length];
+    
+    getHelperPlanes(inputs, helperCoupledPlanes, erasedIndex);
+
+
+    ByteBuffer[] tmpOutputs = new ByteBuffer[2];
+
+    for (int p = 0; p < 2; ++p)
+      tmpOutputs[p] = ClayCodeUtil.allocateByteBuffer(isDirect, bufSize);
+
+
+    int y = util.getNodeCoordinates(erasedIndex)[1];
+    int[] erasedDecoupledNodes = new int[util.q];
+    for (int x = 0; x < util.q ; x++) {
+      erasedDecoupledNodes[x] = util.getNodeIndex(x,y);
+    }
+
+    for (int i=0; i<helperIndexes.length; ++i){
+
+      int z = helperIndexes[i];
+      ByteBuffer[] helperDecoupledPlane = new ByteBuffer[inputs[0].length];
+
+      getDecoupledHelperPlane(helperCoupledPlanes, helperDecoupledPlane, i, helperIndexes, erasedIndex, bufSize, isDirect);
+      decodeDecoupledPlane(helperDecoupledPlane, erasedDecoupledNodes, bufSize, isDirect);
+
+
+      //int[] z_vec = util.getZVector(z);
+
+
+      for (int x = 0; x <util.q; x++) {
+        int nodeIndex = util.getNodeIndex(x, y);
+
+        if (nodeIndex == erasedIndex) {
+          outputs[z][0].put(helperDecoupledPlane[nodeIndex]);
+        } else {
+
+          int coupledZIndex = util.getCouplePlaneIndex(new int[]{x, y}, z);
+
+          getPairWiseCouple(new ByteBuffer[]{null, helperCoupledPlanes[i][nodeIndex], null, helperDecoupledPlane[nodeIndex]}, tmpOutputs);
+
+          outputs[coupledZIndex][0].put(tmpOutputs[0]);
+
+          // clear the temp- buffers for reuse
+          for (int p = 0; p < 2; ++p)
+            tmpOutputs[p].clear();
+
+        }
+
+      }
+    }
+
+
+
+    //restoring the positions of output buffers back
+    for (int i = 0; i < outputs.length; i++) {
+      for (int j = 0; j < outputs[i].length; j++) {
+        outputs[i][j].position(outputPositions[i][j]);
+      }
+    }
+
+    //restoring the positions of input buffers back
+    for (int i = 0; i < inputs.length; i++) {
+      for (int j = 0; j < inputs[i].length; j++) {
+        if (inputs[i][j] != null) {
+          inputPositions[i][j] = inputs[i][j].position();
+        }
+      }
+    }
+    
+  }
+  
+  
+  
+    
+  private void getHelperPlanes(ByteBuffer[][] inputs, ByteBuffer[][] helperPlanes, int erasedIndex){
+    int[] helperIndexes = util.getHelperPlanesIndexes(erasedIndex);
+    
+    for(int i=0; i<helperIndexes.length; ++i){
+      helperPlanes[i] = inputs[helperIndexes[i]];
+    }
+
+  }
+  
+  
+  
+  
   /**
    * Decode multiple erased nodes in thr given inputs. The algorithm decodes the planes of different
    * intersections scores sequentially starting from IS=0 to its maximum possible value.
@@ -154,7 +277,7 @@ public class ClayCodeErasureDecodingStep implements ErasureCodingStep {
 
       for (int z : realZIndexes) {
         getDecoupledPlane(inputs, temp[idx], z, bufSize, isDirect);
-        decodeDecoupledPlane(temp[idx], bufSize, isDirect);
+        decodeDecoupledPlane(temp[idx], erasedIndexes, bufSize, isDirect);
         idx++;
 
       }
@@ -230,6 +353,58 @@ public class ClayCodeErasureDecodingStep implements ErasureCodingStep {
 
   /**
    * Convert all the input symbols of the given plane into its decoupled form. We use the rsRawDecoder to achieve this.
+   *  
+   */
+  private void getDecoupledHelperPlane(ByteBuffer[][] helperPlanes, ByteBuffer[] temp, int helperPlaneIndex,
+                                       int[] helperIndexes, int erasedIndex,
+                                       int bufSize, boolean isDirect )
+    throws IOException {
+    
+    int z = helperIndexes[helperPlaneIndex];
+    int[] z_vec = util.getZVector(z);
+    
+    ByteBuffer[] tmpOutputs = new ByteBuffer[2];
+
+    for (int idx = 0; idx < 2; ++idx)
+      tmpOutputs[idx] = ClayCodeUtil.allocateByteBuffer(isDirect, bufSize);
+    
+    int[] erasedCoordinates = util.getNodeCoordinates(erasedIndex);
+    
+    for (int i = 0; i < util.q*util.t; i++) {
+
+      int[] coordinates = util.getNodeCoordinates(i);
+      
+      if(coordinates[1]!=erasedCoordinates[1]){
+        int coupleZIndex = util.getCouplePlaneIndex(coordinates, z);
+        
+        // prob?
+        int coupleHelperPlaneIndex = 0;
+
+        for (int j = 0; j < helperIndexes.length ; j++) {
+          if(helperIndexes[j]==coupleZIndex) {
+            coupleHelperPlaneIndex=j;
+            break;
+          }
+        }
+        
+        int coupleCoordinates = util.getNodeIndex(z_vec[coordinates[1]], coordinates[1]);
+
+        getPairWiseCouple(new ByteBuffer[]{helperPlanes[helperPlaneIndex][i], helperPlanes[coupleHelperPlaneIndex][coupleCoordinates], null, null}, tmpOutputs);
+
+        temp[i] = ClayCodeUtil.cloneBufferData(tmpOutputs[0]);
+
+        // clear the buffers for reuse
+        for (int idx = 0; idx < 2; ++idx)
+          tmpOutputs[idx].clear();
+        
+      }
+      
+    }
+    
+  }
+
+  /**
+   * Convert all the input symbols of the given plane into its decoupled form. We use the rsRawDecoder to achieve this.
    *
    * @param z    plane index
    * @param temp temporary array which stores decoupled values
@@ -276,7 +451,7 @@ public class ClayCodeErasureDecodingStep implements ErasureCodingStep {
    * @param decoupledPlane the plane to be decoded
    * @throws IOException
    */
-  private void decodeDecoupledPlane(ByteBuffer[] decoupledPlane, int bufSize, boolean isDirect)
+  private void decodeDecoupledPlane(ByteBuffer[] decoupledPlane, int[] erasedIndexes, int bufSize, boolean isDirect)
     throws IOException {
 
 
@@ -604,7 +779,7 @@ public class ClayCodeErasureDecodingStep implements ErasureCodingStep {
     }
 
 
-    public int[] getHelperPlanes(int k) {
+    public int[] getHelperPlanesIndexes(int k) {
 
       int[] a = getNodeCoordinates(k);
       int x = a[0];

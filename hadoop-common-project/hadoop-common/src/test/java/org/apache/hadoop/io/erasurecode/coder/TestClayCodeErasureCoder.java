@@ -12,6 +12,19 @@ public class TestClayCodeErasureCoder extends TestVectorErasureCoderBase{
 
   }
 
+  @Test
+  public void testCodingNoDirectBuffer_4x2_erasing_d1() {
+    prepare(null, 4, 2, new int[]{1}, new int[0]);
+    /**
+     * Doing twice to test if the coders can be repeatedly reused. This matters
+     * as the underlying coding buffers are shared, which may have bugs.
+     */
+    this.numChunksInBlock = 16;
+    this.subPacketSize = 8;
+    testCoding(false);
+    //testCoding(false);
+  }
+
 
   @Test
   public void testCodingNoDirectBuffer_4x2_erasing_d0_d1() {
