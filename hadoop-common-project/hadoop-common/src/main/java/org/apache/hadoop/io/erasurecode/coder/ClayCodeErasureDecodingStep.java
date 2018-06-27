@@ -610,11 +610,11 @@ public class ClayCodeErasureDecodingStep implements ErasureCodingStep {
       int y = a[1];
       int exp = (int) Math.pow(q,t-1);
       int zIndexes[] = new int[exp];
-      int k=0;
+      int j=0;
       for (int i=0;i< ((int)Math.pow(q,t)) ; i++) {
         int[] zVector = getZVector(i);
         if(zVector[y] == x)
-          zIndexes[k++] = i;
+          zIndexes[j++] = i;
       }
     }
 
