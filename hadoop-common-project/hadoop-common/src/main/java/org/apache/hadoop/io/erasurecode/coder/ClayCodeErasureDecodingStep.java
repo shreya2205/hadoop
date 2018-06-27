@@ -605,17 +605,22 @@ public class ClayCodeErasureDecodingStep implements ErasureCodingStep {
 
 
     public int[] getHelperPlanes(int k) {
+
       int[] a = getNodeCoordinates(k);
       int x = a[0];
       int y = a[1];
+
       int exp = (int) Math.pow(q,t-1);
       int zIndexes[] = new int[exp];
+
       int j=0;
-      for (int i=0;i< ((int)Math.pow(q,t)) ; i++) {
+      for (int i=0; i< ((int)Math.pow(q,t)); i++) {
         int[] zVector = getZVector(i);
         if(zVector[y] == x)
           zIndexes[j++] = i;
       }
+
+      return zIndexes;
     }
 
 
