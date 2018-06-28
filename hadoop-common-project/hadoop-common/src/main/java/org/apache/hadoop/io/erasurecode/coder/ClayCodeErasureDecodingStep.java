@@ -143,7 +143,9 @@ public class ClayCodeErasureDecodingStep implements ErasureCodingStep {
         }
       }
     }
-    
+
+    //get the indices of all the helper planes
+    //helper planes are the ones with hole dot pairs
     int[] helperIndexes = util.getHelperPlanesIndexes(erasedIndex);
     ByteBuffer[][] helperCoupledPlanes = new ByteBuffer[helperIndexes.length][inputs[0].length];
     
@@ -158,6 +160,9 @@ public class ClayCodeErasureDecodingStep implements ErasureCodingStep {
 
     int y = util.getNodeCoordinates(erasedIndex)[1];
     int[] erasedDecoupledNodes = new int[util.q];
+
+    //the couples can not be found for any of the nodes in the same column as erased node
+    //erasedDecoupledNodes include all those nodes
     for (int x = 0; x < util.q ; x++) {
       erasedDecoupledNodes[x] = util.getNodeIndex(x,y);
     }
@@ -170,10 +175,8 @@ public class ClayCodeErasureDecodingStep implements ErasureCodingStep {
       getDecoupledHelperPlane(helperCoupledPlanes, helperDecoupledPlane, i, helperIndexes, erasedIndex, bufSize, isDirect);
       decodeDecoupledPlane(helperDecoupledPlane, erasedDecoupledNodes, bufSize, isDirect);
 
-
-      //int[] z_vec = util.getZVector(z);
-
-
+      //after getting all the values in decoupled plane, find out q erased values in the coupled plane
+      //corresponding to one one particular plane in decoupled cube
       for (int x = 0; x <util.q; x++) {
         int nodeIndex = util.getNodeIndex(x, y);
 
@@ -352,7 +355,7 @@ public class ClayCodeErasureDecodingStep implements ErasureCodingStep {
   }
 
   /**
-   * Convert all the input symbols of the given plane into its decoupled form. We use the rsRawDecoder to achieve this.
+   * Convert all the input symbols of the given plane into its decoupled form. We use the pairWiseRawDecoder to achieve this.
    *  
    */
   private void getDecoupledHelperPlane(ByteBuffer[][] helperPlanes, ByteBuffer[] temp, int helperPlaneIndex,
@@ -381,7 +384,6 @@ public class ClayCodeErasureDecodingStep implements ErasureCodingStep {
         } else {
 
           int coupleZIndex = util.getCouplePlaneIndex(coordinates, z);
-          // prob?
           int coupleHelperPlaneIndex = 0;
 
           for (int j = 0; j < helperIndexes.length; j++) {
