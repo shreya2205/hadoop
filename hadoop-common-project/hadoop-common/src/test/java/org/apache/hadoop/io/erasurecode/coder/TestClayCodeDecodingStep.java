@@ -132,15 +132,15 @@ public class TestClayCodeDecodingStep {
 //    assertEquals(util.getAllIntersectionScores().get(1).size(),256);
 //
 //  }
-
-  @Test
-  public void testGetHelperPlanes() {
-    erasedIndexes = new int[]{5};
-    numDataUnits = 4;
-    numParityUnits = 2;
-    util = new ClayCodeErasureDecodingStep.ClayCodeUtil(erasedIndexes,numDataUnits,numParityUnits);
-
-    assertArrayEquals(util.getHelperPlanes(5),new int[]{1,3,5,7});
-  }
+//
+//  @Test
+//  public void testGetHelperPlanes() {
+//    erasedIndexes = new int[]{5};
+//    numDataUnits = 4;
+//    numParityUnits = 2;
+//    util = new ClayCodeErasureDecodingStep.ClayCodeUtil(erasedIndexes,numDataUnits,numParityUnits);
+//
+//    assertArrayEquals(util.getHelperPlanes(5),new int[]{1,3,5,7});
+//  }
 
 }

@@ -784,6 +784,10 @@ public class ClayCodeErasureDecodingStep implements ErasureCodingStep {
     }
 
 
+    /**
+     * @param k erased node index.
+     * @return all the planes which have a hole-dot pair, i.e, intersection score is 1 (only used when one node is lost).
+     */
     public int[] getHelperPlanesIndexes(int k) {
 
       int[] a = getNodeCoordinates(k);
