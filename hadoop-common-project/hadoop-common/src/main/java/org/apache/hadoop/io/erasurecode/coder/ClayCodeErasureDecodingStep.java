@@ -375,28 +375,33 @@ public class ClayCodeErasureDecodingStep implements ErasureCodingStep {
       int[] coordinates = util.getNodeCoordinates(i);
       
       if(coordinates[1]!=erasedCoordinates[1]){
-        int coupleZIndex = util.getCouplePlaneIndex(coordinates, z);
-        
-        // prob?
-        int coupleHelperPlaneIndex = 0;
 
-        for (int j = 0; j < helperIndexes.length ; j++) {
-          if(helperIndexes[j]==coupleZIndex) {
-            coupleHelperPlaneIndex=j;
-            break;
+        if (z_vec[coordinates[1]] == coordinates[0]){
+          temp[i] = helperPlanes[helperPlaneIndex][i];
+        } else {
+
+          int coupleZIndex = util.getCouplePlaneIndex(coordinates, z);
+          // prob?
+          int coupleHelperPlaneIndex = 0;
+
+          for (int j = 0; j < helperIndexes.length; j++) {
+            if (helperIndexes[j] == coupleZIndex) {
+              coupleHelperPlaneIndex = j;
+              break;
+            }
           }
+
+          int coupleCoordinates = util.getNodeIndex(z_vec[coordinates[1]], coordinates[1]);
+
+          getPairWiseCouple(new ByteBuffer[]{helperPlanes[helperPlaneIndex][i], helperPlanes[coupleHelperPlaneIndex][coupleCoordinates], null, null}, tmpOutputs);
+
+          temp[i] = ClayCodeUtil.cloneBufferData(tmpOutputs[0]);
+
+          // clear the buffers for reuse
+          for (int idx = 0; idx < 2; ++idx)
+            tmpOutputs[idx].clear();
+
         }
-        
-        int coupleCoordinates = util.getNodeIndex(z_vec[coordinates[1]], coordinates[1]);
-
-        getPairWiseCouple(new ByteBuffer[]{helperPlanes[helperPlaneIndex][i], helperPlanes[coupleHelperPlaneIndex][coupleCoordinates], null, null}, tmpOutputs);
-
-        temp[i] = ClayCodeUtil.cloneBufferData(tmpOutputs[0]);
-
-        // clear the buffers for reuse
-        for (int idx = 0; idx < 2; ++idx)
-          tmpOutputs[idx].clear();
-        
       }
       
     }

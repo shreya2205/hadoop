@@ -22,7 +22,7 @@ public class TestClayCodeErasureCoder extends TestVectorErasureCoderBase{
     this.numChunksInBlock = 16;
     this.subPacketSize = 8;
     testCoding(false);
-    //testCoding(false);
+    testCoding(false);
   }
 
 
@@ -104,7 +104,7 @@ public class TestClayCodeErasureCoder extends TestVectorErasureCoderBase{
     //testCoding(false);
   }
 
-  @Test
+  //@Test
   public void testCodingNoDirectBuffer_12x4_erasing_d1_p1_p2() {
     prepare(null, 12, 4, new int[]{1}, new int[]{1,2});
     /**
