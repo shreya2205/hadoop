@@ -73,7 +73,7 @@ public class ClayCodeErasureDecodingStep implements ErasureCodingStep {
 
   }
 
-  private void performCoding(ByteBuffer[] inputs, ByteBuffer[] outputs)
+  public void performCoding(ByteBuffer[] inputs, ByteBuffer[] outputs)
     throws IOException {
 
     final int numDataUnits = rsRawDecoder.getNumDataUnits();

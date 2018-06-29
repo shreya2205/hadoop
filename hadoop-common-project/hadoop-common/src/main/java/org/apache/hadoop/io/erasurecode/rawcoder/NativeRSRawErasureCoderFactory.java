@@ -49,4 +49,10 @@ public class NativeRSRawErasureCoderFactory implements RawErasureCoderFactory {
   public String getCodecName() {
     return ErasureCodeConstants.RS_CODEC_NAME;
   }
+
+  @Override
+  public String toString(){
+    return toStringimpl();
+  }
+
 }

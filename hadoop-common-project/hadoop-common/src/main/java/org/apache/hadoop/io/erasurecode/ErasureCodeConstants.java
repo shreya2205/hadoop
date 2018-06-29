@@ -33,6 +33,10 @@ public final class ErasureCodeConstants {
   public static final String CLAY_CODE_CODEC_NAME = "claycode";
   public static final String REPLICATION_CODEC_NAME = "replication";
 
+  public static final ECSchema CC_6_3_SCHEMA = new ECSchema(
+    CLAY_CODE_CODEC_NAME, 6, 3
+  );
+
   public static final ECSchema RS_6_3_SCHEMA = new ECSchema(
       RS_CODEC_NAME, 6, 3);
 

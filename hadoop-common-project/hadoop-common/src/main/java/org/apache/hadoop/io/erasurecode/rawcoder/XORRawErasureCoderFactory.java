@@ -48,4 +48,10 @@ public class XORRawErasureCoderFactory implements RawErasureCoderFactory {
   public String getCodecName() {
     return ErasureCodeConstants.XOR_CODEC_NAME;
   }
+
+  @Override
+  public String toString(){
+    return toStringimpl();
+  }
+
 }

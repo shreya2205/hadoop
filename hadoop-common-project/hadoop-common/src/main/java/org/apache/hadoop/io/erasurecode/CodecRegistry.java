@@ -74,6 +74,9 @@ public final class CodecRegistry {
    */
   @VisibleForTesting
   void updateCoders(Iterable<RawErasureCoderFactory> coderFactories) {
+    StringBuilder sb = new StringBuilder();
+    coderFactories.forEach(sb::append);
+    LOG.debug("Codec mukka factory cp: " + sb.toString());
     for (RawErasureCoderFactory coderFactory : coderFactories) {
       String codecName = coderFactory.getCodecName();
       List<RawErasureCoderFactory> coders = coderMap.get(codecName);

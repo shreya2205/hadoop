@@ -69,7 +69,7 @@ public class ECPolicyLoader {
       return loadECPolicies(policyFile);
     } catch (ParserConfigurationException | IOException | SAXException e) {
       throw new RuntimeException("Failed to load EC policy file: "
-          + policyFilePath);
+          + policyFilePath + "   "+ e);
     }
   }
 

@@ -81,6 +81,10 @@ public final class CodecUtil {
   public static final String IO_ERASURECODE_CODEC_XOR_RAWCODERS_KEY =
       IO_ERASURECODE_CODEC + "xor.rawcoders";
 
+
+  public static final String IO_ERASURECODE_CODEC_CLAY_CODE_RAWCODERS_KEY =
+    IO_ERASURECODE_CODEC + "claycode.rawcoders";
+
   private CodecUtil() { }
 
   /**

@@ -47,4 +47,9 @@ public class DummyRawErasureCoderFactory implements RawErasureCoderFactory {
   public String getCodecName() {
     return ErasureCodeConstants.DUMMY_CODEC_NAME;
   }
+
+  @Override
+  public String toString(){
+    return toStringimpl();
+  }
 }

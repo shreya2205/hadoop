@@ -53,4 +53,8 @@ public interface RawErasureCoderFactory {
    * @return codec name
    */
   String getCodecName();
+
+  default String toStringimpl(){
+    return getCoderName() + " : " + getCodecName();
+  }
 }
