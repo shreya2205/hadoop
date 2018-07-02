@@ -23,7 +23,7 @@ import org.apache.hadoop.io.erasurecode.rawcoder.RSRawErasureCoderFactory;
 import org.junit.Before;
 import org.junit.Test;
 
-public class TestHHXORErasureCoder extends TestHHErasureCoderBase {
+public class TestHHXORErasureCoder extends TestVectorErasureCoderBase {
 
   @Before
   public void setup() {
