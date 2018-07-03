@@ -17,11 +17,13 @@ public class ClayRawDecoder extends RawErasureDecoder {
 
   public ClayRawDecoder(ErasureCoderOptions coderOptions) {
     super(coderOptions);
-
+    Configuration conf = new Configuration();
+    conf.set(CodecUtil.IO_ERASURECODE_CODEC_RS_RAWCODERS_KEY,
+        RSRawErasureCoderFactory.CODER_NAME);
     schema = new ECSchema("claycode", coderOptions.getNumDataUnits(), coderOptions.getNumParityUnits());
-    claycode = new ClayCodeErasureCodec(new Configuration(), new ErasureCodecOptions(schema));
+    claycode = new ClayCodeErasureCodec(conf, new ErasureCodecOptions(schema));
     claydecoder = claycode.createDecoder();
-
+    claydecoder.setConf(conf);
   }
 
   @Override
@@ -65,7 +67,17 @@ public class ClayRawDecoder extends RawErasureDecoder {
       outputChunks[i] = new ECChunk(outputs[i]);
     }
 
-    claydecoder.calculateCoding(new ECBlockGroup(new ECBlock[]{}, new ECBlock[]{})).performCoding(inputChunks,outputChunks);
+    ECChunk[] inputchnks = new ECChunk[getNumDataUnits() +
+        getNumParityUnits()];
+
+    System.arraycopy(inputChunks, 0, inputchnks,
+        0, getNumDataUnits());
+
+    System.arraycopy(outputChunks, 0, inputchnks,
+        getNumDataUnits(), getNumParityUnits());
+
+
+    claydecoder.calculateCoding(new ECBlockGroup(new ECBlock[]{}, new ECBlock[]{})).performCoding(inputchnks,outputChunks);
   }
 
   @Override

@@ -130,6 +130,7 @@ public final class CodecUtil {
    */
   public static RawErasureEncoder createRawEncoder(
       Configuration conf, String codec, ErasureCoderOptions coderOptions) {
+    LOG.debug("conf " + conf);
     Preconditions.checkNotNull(conf);
     Preconditions.checkNotNull(codec);
 
@@ -145,6 +146,7 @@ public final class CodecUtil {
    */
   public static RawErasureDecoder createRawDecoder(
       Configuration conf, String codec, ErasureCoderOptions coderOptions) {
+    LOG.debug("conf " + conf);
     Preconditions.checkNotNull(conf);
     Preconditions.checkNotNull(codec);
 
