@@ -141,7 +141,7 @@ public final class ECSchema implements Serializable {
    * @param numParityUnits number of parity units
    */
   private void checkOptions(String codecName, int numDataUnits, int numParityUnits) {
-    int numTotalUnits = getAllUnits();
+    int numTotalUnits = numDataUnits + numParityUnits;
 
     switch(codecName){
       // m should divide n

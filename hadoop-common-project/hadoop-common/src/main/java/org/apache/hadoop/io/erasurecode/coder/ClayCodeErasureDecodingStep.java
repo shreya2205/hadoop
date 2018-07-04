@@ -231,7 +231,7 @@ public class ClayCodeErasureDecodingStep implements ErasureCodingStep {
     for (int i = 0; i < inputs.length; i++) {
       for (int j = 0; j < inputs[i].length; j++) {
         if (inputs[i][j] != null) {
-          inputPositions[i][j] = inputs[i][j].position();
+          inputs[i][j].position(inputPositions[i][j] + bufSize);
         }
       }
     }
